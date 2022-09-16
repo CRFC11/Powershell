@@ -1,6 +1,8 @@
 Import-Module ADSync
 
+#This will only sync changes
 Start-ADSyncSyncCycle -PolicyType Delta
 
+#This will sync the entire AD
 Start-ADSyncSyncCycle -PolicyType Initial
 
