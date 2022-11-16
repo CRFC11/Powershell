@@ -1,3 +1,6 @@
+#CHECK THIS
+Ensure Modules are present for instance https://www.powershellgallery.com/packages/ExchangeOnlineManagement/3.0.0
+
 # Powershell
 2 Steps before using scripts:
 
