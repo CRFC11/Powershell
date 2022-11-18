@@ -13,6 +13,8 @@ Connect-MsolService
 
 Get-MsolUser -All | Where {$_.StrongAuthenticationMethods -ne $null -or $_.StrongAuthenticationRequirements.State -ne $nul}
 
+# For 365/AAD edits commands can be found at:
+https://learn.microsoft.com/en-us/powershell/module/msonline/?view=azureadps-1.0#msonline
 
 # For Exch
 Import-Module ExchangeOnlineManagement
