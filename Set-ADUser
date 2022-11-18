@@ -1,2 +1,70 @@
 #To see all possible attributes
 Get-Help Set-ADUser -Parameter *|ft
+
+
+name                                 required pipelineInput  isDynamic parameterSetName   parameterValue             type                               position aliases
+----                                 -------- -------------  --------- ----------------   --------------             ----                               -------- -------
+AccountExpirationDate                false    false          true      Identity           datetime                   @{name=datetime}                   Named    None
+AccountNotDelegated                  false    false          true      Identity           bool                       @{name=bool}                       Named    None
+Add                                  false    false          true      Identity           hashtable                  @{name=hashtable}                  Named    None
+AllowReversiblePasswordEncryption    false    false          true      Identity           bool                       @{name=bool}                       Named    None
+AuthType                             false    false          true      (All)              ADAuthType                 @{name=ADAuthType}                 Named    None
+AuthenticationPolicy                 false    false          true      Identity           ADAuthenticationPolicy     @{name=ADAuthenticationPolicy}     Named    None
+AuthenticationPolicySilo             false    false          true      Identity           ADAuthenticationPolicySilo @{name=ADAuthenticationPolicySilo} Named    None
+CannotChangePassword                 false    false          true      Identity           bool                       @{name=bool}                       Named    None
+Certificates                         false    false          true      Identity           hashtable                  @{name=hashtable}                  Named    None
+ChangePasswordAtLogon                false    false          true      Identity           bool                       @{name=bool}                       Named    None
+City                                 false    false          true      Identity           string                     @{name=string}                     Named    None
+Clear                                false    false          true      Identity           string[]                   @{name=string[]}                   Named    None
+Company                              false    false          true      Identity           string                     @{name=string}                     Named    None
+CompoundIdentitySupported            false    false          true      Identity           bool                       @{name=bool}                       Named    None
+Confirm                              false    false          false     (All)                                         @{name=switch}                     Named    cf
+Country                              false    false          true      Identity           string                     @{name=string}                     Named    None
+Credential                           false    false          true      (All)              pscredential               @{name=pscredential}               Named    None
+Department                           false    false          true      Identity           string                     @{name=string}                     Named    None
+Description                          false    false          true      Identity           string                     @{name=string}                     Named    None
+DisplayName                          false    false          true      Identity           string                     @{name=string}                     Named    None
+Division                             false    false          true      Identity           string                     @{name=string}                     Named    None
+EmailAddress                         false    false          true      Identity           string                     @{name=string}                     Named    None
+EmployeeID                           false    false          true      Identity           string                     @{name=string}                     Named    None
+EmployeeNumber                       false    false          true      Identity           string                     @{name=string}                     Named    None
+Enabled                              false    false          true      Identity           bool                       @{name=bool}                       Named    None
+Fax                                  false    false          true      Identity           string                     @{name=string}                     Named    None
+GivenName                            false    false          true      Identity           string                     @{name=string}                     Named    None
+HomeDirectory                        false    false          true      Identity           string                     @{name=string}                     Named    None
+HomeDrive                            false    false          true      Identity           string                     @{name=string}                     Named    None
+HomePage                             false    false          true      Identity           string                     @{name=string}                     Named    None
+HomePhone                            false    false          true      Identity           string                     @{name=string}                     Named    None
+Identity                             true     true (ByValue) true      Identity           ADUser                     @{name=ADUser}                     0        None
+Initials                             false    false          true      Identity           string                     @{name=string}                     Named    None
+Instance                             true     false          true      Instance           ADUser                     @{name=ADUser}                     Named    None
+KerberosEncryptionType               false    false          true      Identity           ADKerberosEncryptionType   @{name=ADKerberosEncryptionType}   Named    None
+LogonWorkstations                    false    false          true      Identity           string                     @{name=string}                     Named    None
+Manager                              false    false          true      Identity           ADUser                     @{name=ADUser}                     Named    None
+MobilePhone                          false    false          true      Identity           string                     @{name=string}                     Named    None
+Office                               false    false          true      Identity           string                     @{name=string}                     Named    None
+OfficePhone                          false    false          true      Identity           string                     @{name=string}                     Named    None
+Organization                         false    false          true      Identity           string                     @{name=string}                     Named    None
+OtherName                            false    false          true      Identity           string                     @{name=string}                     Named    None
+POBox                                false    false          true      Identity           string                     @{name=string}                     Named    None
+Partition                            false    false          true      Identity           string                     @{name=string}                     Named    None
+PassThru                             false    false          true      (All)                                         @{name=switch}                     Named    None
+PasswordNeverExpires                 false    false          true      Identity           bool                       @{name=bool}                       Named    None
+PasswordNotRequired                  false    false          true      Identity           bool                       @{name=bool}                       Named    None
+PostalCode                           false    false          true      Identity           string                     @{name=string}                     Named    None
+PrincipalsAllowedToDelegateToAccount false    false          true      Identity           ADPrincipal[]              @{name=ADPrincipal[]}              Named    None
+ProfilePath                          false    false          true      Identity           string                     @{name=string}                     Named    None
+Remove                               false    false          true      Identity           hashtable                  @{name=hashtable}                  Named    None
+Replace                              false    false          true      Identity           hashtable                  @{name=hashtable}                  Named    None
+SamAccountName                       false    false          true      Instance, Identity string                     @{name=string}                     Named    None
+ScriptPath                           false    false          true      Identity           string                     @{name=string}                     Named    None
+Server                               false    false          true      (All)              string                     @{name=string}                     Named    None
+ServicePrincipalNames                false    false          true      Identity           hashtable                  @{name=hashtable}                  Named    None
+SmartcardLogonRequired               false    false          true      Identity           bool                       @{name=bool}                       Named    None
+State                                false    false          true      Identity           string                     @{name=string}                     Named    None
+StreetAddress                        false    false          true      Identity           string                     @{name=string}                     Named    None
+Surname                              false    false          true      Identity           string                     @{name=string}                     Named    None
+Title                                false    false          true      Identity           string                     @{name=string}                     Named    None
+TrustedForDelegation                 false    false          true      Identity           bool                       @{name=bool}                       Named    None
+UserPrincipalName                    false    false          true      Identity           string                     @{name=string}                     Named    None
+WhatIf                               false    false          false     (All)                                         @{name=switch}                     Named    wi
