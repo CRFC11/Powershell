@@ -1,2 +1,2 @@
-# To see all possible attributes #
+# To see all possible attributes
 Get-Help Set-ADUser -Parameter *|ft
