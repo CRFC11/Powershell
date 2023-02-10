@@ -1,0 +1,4 @@
+#How to change Registry Value
+Set-Location -Path "Registry::HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
+Set-ItemProperty -Path "." -Name "Personal" -Value "%USERPROFILE\Documents"
+Set-ItemProperty -Path "." -Name "My Pictures" -Value "%USERPROFILE\Pictures"
