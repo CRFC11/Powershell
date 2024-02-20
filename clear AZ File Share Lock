@@ -1,43 +1,43 @@
-https://infra.engineer/azure/65-azure-clearing-the-lock-on-a-file-within-an-azure-file-share
+#https://infra.engineer/azure/65-azure-clearing-the-lock-on-a-file-within-an-azure-file-share
 
-This cannot be done with the GUI so PowerShell or Cloud Shell must be used.
+#This cannot be done with the GUI so PowerShell or Cloud Shell must be used.
 
-If you do not have the Azure powershell module installed, install it with
+#If you do not have the Azure powershell module installed, install it with
 
 Install-Module -Name Az -AllowClobber 
-Accept and install any missing pre-requisites (i.e. NuGet)
+#Accept and install any missing pre-requisites (i.e. NuGet)
  
-Connect to Azure and login with an admin account of sufficient privileges
+#Connect to Azure and login with an admin account of sufficient privileges
 
 Connect-AzAccount
  
-Select the subscription of the target account
+#Select the subscription of the target account
 
 Select-AzSubscription -subscriptionid "SubscriptionID"
-The Subscription ID is shown within the Overview page under the Storage Account you are connecting to
+#The Subscription ID is shown within the Overview page under the Storage Account you are connecting to
 
 
  
-Create storage context for the target storage account
+#Create storage context for the target storage account
 
 $Context = New-AzStorageContext -StorageAccountName "StorageAccountName" -StorageAccountKey "StorageAccessKey"
-The storage account name and storage access key can be obtained from Settings > Access Keys within the Storage Account
+#The storage account name and storage access key can be obtained from Settings > Access Keys within the Storage Account
 
 
  
-Get the current open handles of the file share
+#Get the current open handles of the file share
 
 Get-AzStorageFileHandle -Context $Context -ShareName "FileShareName" -Recursive
-The file share name can be confirmed within the file shares
+#The file share name can be confirmed within the file shares
 
 
 
-This will return a list of open files within the share and the file you are having trouble with should be shown.
+#This will return a list of open files within the share and the file you are having trouble with should be shown.
 
-Copy the path to the file in question.
+#Copy the path to the file in question.
 
-Close the open handle
+#Close the open handle
 
 Close-AzStorageFileHandle -Context $Context -ShareName "FileShareName" -Path 'path to file copied from the list' -CloseAll
 
-Re-run the open handles command to verify it has closed, you should now be able to delete it.
+#Re-run the open handles command to verify it has closed, you should now be able to delete it.
