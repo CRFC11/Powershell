@@ -1,0 +1,18 @@
+Get-ADGroupMember -identity $group |   
+    Get-ADUser |   
+        Select-Object GivenName, SurName |  
+            Export-CSV c:\members.csv -NoTypeInformation  
+  
+# version 2 - how to return non default attributes like displayName and mail.  
+  
+Get-ADGroupMember -identity $group |   
+    Get-ADUser -properties displayName, mail |   
+        Select-Object displayName, mail |  
+            Export-CSV c:\members.csv -NoTypeInformation  
+  
+# version 3, want the group name included in that  
+  
+Get-ADGroupMember -identity $group |   
+    Get-ADUser |   
+        Select-Object GivenName, SurName, @{name="group";expression={$group}} |  
+            Export-CSV c:\members.csv -NoTypeInformation  
