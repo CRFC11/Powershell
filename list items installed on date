@@ -1,0 +1,1 @@
+Get-ItemProperty  hklm:\software\wow6432node\microsoft\windows\currentversion\uninstall\* | select-object DisplayName, Version, InstallDate | where installdate -like "2024*"
