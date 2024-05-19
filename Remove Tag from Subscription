@@ -1,0 +1,25 @@
+
+#```powershell
+# Login to Azure
+Connect-AzAccount
+
+# Select the correct subscription
+Select-AzSubscription -SubscriptionName "XXXXSUBSCRIPTIONXXXX"
+
+# Retrieve all VMs with the 'AVD-Scaling-Plan-Exclude' tag
+$vmList = Get-AzVM | Where-Object { $_.Tags.Keys -contains "XXXXXTAGNAMEXXXX" }
+
+# Remove the 'AVD-Scaling-Plan-Exclude' tag from all retrieved VMs
+foreach ($vm in $vmList) {
+    $tags = (Get-AzResource -ResourceId $vm.Id).Tags
+    $tags.Remove("XXXXXTAGNAMEXXXX")
+    Set-AzResource -ResourceId $vm.Id -Tag $tags -Force
+}
+
+# Confirm the tags have been removed
+$vmList | Format-Table Name, ResourceGroupName, Tags
+```
+
+#This script will log you into Azure, select the 'AG-AVD-Prod' subscription, retrieve all VMs with the 'AVD-Scaling-Plan-Exclude' tag, remove the tag from each VM, and display a table confirming the removal of the tags.
+
+#Please ensure you have the necessary permissions and that you are aware of any potential impacts on billing or compliance before running the script. If you need further assistance or have any questions, feel free to ask!
