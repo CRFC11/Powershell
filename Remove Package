@@ -1,0 +1,1 @@
+Get-AppxPackage -AllUsers | Where-Object {$_.PackageFullName -eq "XXXAPPNAMEXXXX"} | Remove-AppxPackage
