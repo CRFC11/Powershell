@@ -1,1 +1,3 @@
+#Get-AppxPackage -Name XXXXXX is needed to get the exact package name.
+
 Get-AppxPackage -AllUsers | Where-Object {$_.PackageFullName -eq "XXXAPPNAMEXXXX"} | Remove-AppxPackage
