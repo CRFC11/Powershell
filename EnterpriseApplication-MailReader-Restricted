@@ -1,0 +1,186 @@
+
+<# =======================================================================
+  CONFIG — Non-coders: only change the two lines below and press Run
+======================================================================== #>
+
+$EaName  = "EA-Contoso-Integration"      # <-- Enterprise App name (must be unique)
+$Mailbox = "shared.sales@contoso.com"    # <-- Target mailbox primary SMTP
+
+<# =======================================================================
+  Script: Create Enterprise App + Scoped EXO RBAC for one mailbox
+  - Creates App + SP + client secret
+  - Grants Graph application permissions: Mail.ReadWrite, Mail.Send
+  - Creates mail-enabled security group (MESG) and binds scope to that group
+  - Creates EXO ServicePrincipal pointer and assigns Application Mail.* roles
+  - Validates with Test-ServicePrincipalAuthorization
+======================================================================== #>
+
+# ---------------------------
+# Safety: if the user didn’t edit CONFIG, ask interactively
+# ---------------------------
+function Read-IfBlank {
+  param([string]$Label, [string]$Current)
+  if ([string]::IsNullOrWhiteSpace($Current)) {
+    return (Read-Host $Label).Trim()
+  }
+  return $Current.Trim()
+}
+
+$EaName  = Read-IfBlank -Label "Enter Enterprise App name (unique)" -Current $EaName
+$Mailbox = Read-IfBlank -Label "Enter target mailbox SMTP address"  -Current $Mailbox
+
+# Enforce presence and non-empty values
+if ([string]::IsNullOrWhiteSpace($EaName)) {
+  Write-Error "Enterprise App name is required and cannot be blank. Aborting."
+  exit 1
+}
+if ([string]::IsNullOrWhiteSpace($Mailbox)) {
+  Write-Error "Target mailbox address is required and cannot be blank. Aborting."
+  exit 1
+}
+
+# ---------------------------
+# Utilities
+# ---------------------------
+function Ensure-Module {
+  param([string]$Name)
+  if (-not (Get-Module -ListAvailable -Name $Name)) {
+    Write-Host "Installing module $Name..." -ForegroundColor Yellow
+    Install-Module $Name -Scope CurrentUser -Force -ErrorAction Stop
+  }
+  Import-Module $Name -ErrorAction Stop
+}
+
+# ---------------------------
+# Load modules
+# ---------------------------
+Ensure-Module -Name Microsoft.Graph
+Ensure-Module -Name ExchangeOnlineManagement
+
+# ---------------------------
+# Preflight: Connect to EXO and verify mailbox exists
+# ---------------------------
+try {
+  Connect-ExchangeOnline -ShowBanner:$false -ErrorAction Stop | Out-Null
+} catch {
+  Write-Error "Failed to connect to Exchange Online. $_"
+  exit 1
+}
+
+try {
+  # Broad recipient lookup (works for user mailboxes & shared)
+  $mbx = Get-EXORecipient -Identity $Mailbox -ErrorAction Stop
+} catch {
+  Write-Error "Mailbox '$Mailbox' was not found in Exchange Online. Check the address and try again."
+  exit 1
+}
+
+# ---------------------------
+# Preflight: Connect to Graph and hard-stop on duplicate EA name
+# ---------------------------
+$graphScopes = @("Application.ReadWrite.All","AppRoleAssignment.ReadWrite.All","Directory.ReadWrite.All")
+try {
+  Connect-MgGraph -Scopes $graphScopes -ErrorAction Stop | Out-Null
+} catch {
+  Write-Error "Failed to connect to Microsoft Graph. $_"
+  exit 1
+}
+
+# Hard-stop if a service principal with the same display name exists
+try {
+  $existingSp = Get-MgServicePrincipal -Filter "displayName eq '$($EaName.Replace("'", "''"))'"
+} catch {
+  Write-Error "Could not query existing Enterprise Apps in Graph. $_"
+  exit 1
+}
+
+if ($existingSp) {
+  Write-Error "An Enterprise App / Service Principal named '$EaName' already exists (ObjectId: $($existingSp.Id)). Aborting to enforce unique names."
+  exit 1
+}
+
+# ---------------------------
+# Resolve Microsoft Graph resource SP (well-known AppId)
+# ---------------------------
+$graphSp = Get-MgServicePrincipal -Filter "appId eq '00000003-0000-0000-c000-000000000000'"
+
+# ---------------------------
+# 1) Create App registration + SP + client secret
+# ---------------------------
+Write-Host "Creating app registration '$EaName'..." -ForegroundColor Cyan
+$app = New-MgApplication -DisplayName $EaName -SignInAudience "AzureADMyOrg"
+
+Write-Host "Creating Enterprise App (service principal)..." -ForegroundColor Cyan
+$sp = New-MgServicePrincipal -AppId $app.AppId -DisplayName $EaName
+
+Write-Host "Creating client secret (store this securely)..." -ForegroundColor Cyan
+$pw = Add-MgApplicationPassword -ApplicationId $app.Id -PasswordCredential @{
+  DisplayName = "InitialSecret"
+}
+
+# ---------------------------
+# 2) Grant Graph app permissions: Mail.ReadWrite + Mail.Send
+# ---------------------------
+$neededAppRoles = @("Mail.ReadWrite","Mail.Send")
+$roles = $graphSp.AppRoles | Where-Object {
+  $_.Value -in $neededAppRoles -and $_.AllowedMemberTypes -contains "Application"
+}
+
+foreach ($role in $roles) {
+  Write-Host ("Assigning Graph app role '{0}'..." -f $role.Value)
+  New-MgServicePrincipalAppRoleAssignment `
+    -ServicePrincipalId $sp.Id `
+    -PrincipalId $sp.Id `
+    -ResourceId $graphSp.Id `
+    -AppRoleId $role.Id | Out-Null
+}
+
+# ---------------------------
+# 3) Create mail-enabled security group and management scope
+# ---------------------------
+$groupName = "RBAC-$EaName-ScopedMailboxes"
+Write-Host "Creating mail-enabled security group '$groupName'..." -ForegroundColor Cyan
+$mesg = New-DistributionGroup -Name $groupName -Type Security
+
+Write-Host "Adding $Mailbox to '$groupName'..." -ForegroundColor Cyan
+Add-DistributionGroupMember -Identity $groupName -Member $Mailbox -ErrorAction Stop
+
+$groupDN = (Get-DistributionGroup -Identity $groupName).DistinguishedName
+$scopeName = "Scope-$EaName"
+Write-Host "Creating management scope '$scopeName' bound to group membership..." -ForegroundColor Cyan
+New-ManagementScope -Name $scopeName -RecipientRestrictionFilter "MemberOfGroup -eq '$groupDN'"
+
+# ---------------------------
+# 4) EXO service principal pointer + RBAC assignments
+# ---------------------------
+Write-Host "Creating Exchange service principal reference..." -ForegroundColor Cyan
+New-ServicePrincipal -AppId $app.AppId -ObjectId $sp.Id -DisplayName $EaName | Out-Null
+
+# Propagation buffer
+Start-Sleep -Seconds 10
+
+Write-Host "Assigning RBAC roles scoped to '$scopeName'..." -ForegroundColor Cyan
+New-ManagementRoleAssignment -Name "$EaName-Mail.ReadWrite" -Role "Application Mail.ReadWrite" -App $sp.Id -CustomResourceScope $scopeName
+New-ManagementRoleAssignment -Name "$EaName-Mail.Send"       -Role "Application Mail.Send"       -App $sp.Id -CustomResourceScope $scopeName
+
+# ---------------------------
+# 5) Validate authorization
+# ---------------------------
+Write-Host "Validating service principal authorization..." -ForegroundColor Cyan
+$test = Test-ServicePrincipalAuthorization -Identity $sp.Id -Resource $Mailbox
+
+# ---------------------------
+# Output summary
+# ---------------------------
+Write-Host ""
+Write-Host "==================== Summary ====================" -ForegroundColor Green
+Write-Host (" App Display Name : {0}" -f $EaName)
+Write-Host (" App (client) ID  : {0}" -f $app.AppId)
+Write-Host (" SP Object ID     : {0}" -f $sp.Id)
+Write-Host (" Tenant ID        : {0}" -f (Get-MgContext).TenantId)
+Write-Host (" Client Secret    : {0}" -f $pw.SecretText)  # store securely!
+Write-Host (" MESG Name        : {0}" -f $groupName)
+Write-Host (" Scope Name       : {0}" -f $scopeName)
+Write-Host ""
+$test | Format-Table
+Write-Host "=================================================" -ForegroundColor Green
