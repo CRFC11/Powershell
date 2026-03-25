@@ -1,0 +1,2 @@
+$nslookup = resolve-dnsname XXXXXX.com
+foreach($ip in $Nslookup.IPAddress){tnc $ip -p 53 -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | select remoteaddress,tcptestsucceeded }
